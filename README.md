@@ -127,15 +127,15 @@ where drag stress `τ = ½ · CD · ρ · U²` acts on the organism's projected 
 
 **Growth curves (5 Tokyo Bay scenarios):**
 
-![Growth Curves](results/deb/growth_curves.png)
+![Growth Curves](assets/growth_curves.png)
 
 **Sensitivity heatmap — Temperature × Food density:**
 
-![Sensitivity T-X](results/deb/sensitivity_heatmap_T_X.png)
+![Sensitivity T-X](assets/sensitivity_heatmap_T_X.png)
 
 **Gumbel detachment probability:**
 
-![Detachment](results/deb/detachment_probability.png)
+![Detachment](assets/detachment_probability.png)
 
 ---
 
@@ -168,15 +168,15 @@ Top predictors: Chlorophyll-a > Water temperature > Dissolved oxygen
 
 **Seasonal risk maps (Summer peak vs Winter low):**
 
-![Risk Map](results/tokyobay/risk_map_seasonal.png)
+![Risk Map](assets/risk_map_seasonal.png)
 
 **Annual risk cycle — all stations:**
 
-![Risk Timeseries](results/tokyobay/risk_timeseries.png)
+![Risk Timeseries](assets/risk_timeseries.png)
 
 **Model evaluation (ROC + Confusion Matrix):**
 
-![Model Evaluation](results/tokyobay/model_evaluation.png)
+![Model Evaluation](assets/model_evaluation.png)
 
 ### Key Findings
 
