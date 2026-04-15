@@ -96,9 +96,17 @@ Drag stress (force normalized by adhesion area, also ∝ L²):
 τ(U, L) = F_drag / A_adh ∝ ½ · C_D · ρ_w · U²
 ```
 
-Note: area scaling means τ is approximately independent of L for
-geometrically similar organisms — size enters through the
-absolute adhesion strength τ₀, which scales with adhesive pad area.
+Note: area scaling alone makes τ approximately independent of L for
+geometrically similar organisms, so the size effect is introduced
+through a size-dependent adhesion threshold:
+
+```
+τ₀,eff(L) = τ₀,ref · (L / L_ref)^α
+```
+
+with `L_ref = 1 cm` and `α = 0.8` in the prototype implementation.
+This shifts the detachment curve to higher flow velocity for larger
+organisms.
 
 Gumbel CDF:
 
@@ -110,7 +118,9 @@ P_detach = 1 − exp(−exp((τ − τ₀) / σ))
 |-----------|-------|------|--------|
 | `C_D` | 1.2 | — | Bluff body (barnacle shape) |
 | `ρ_w` | 1025 | kg/m³ | Seawater |
-| `τ₀` | 12.5 | N/m² | Median adhesion stress (barnacle) |
+| `τ₀,ref` | 12.5 | N/m² | Reference adhesion stress at `L_ref = 1 cm` |
+| `L_ref` | 1.0 | cm | Reference organism size |
+| `α` | 0.8 | — | Size-scaling exponent for adhesion threshold |
 | `σ` | 4.0 | N/m² | Gumbel scale (to be calibrated) |
 
 **Calibration plan**: water tank oscillating-flow experiments
@@ -126,7 +136,12 @@ First-order finite-difference approximation:
 ```
 
 evaluated at `t = 120` days (mid-growth-season reference point).
-Perturbations: `ΔT = 2°C`, `ΔX = 0.5 µg/L`, `ΔU = 0.05 m/s`.
+To avoid unrealistically fast reserve equilibration at very small size,
+the reserve equation is regularized as `de/dt = (f - e)·v̇(T)/(L + L0)`
+with `L0 = 0.10 cm`. Growth is also slowed near an asymptotic structural
+length `L_inf = 4.0 cm` through a multiplicative factor
+`max(0, 1 - L/L_inf)`. Perturbations: `ΔT = 2°C`, `ΔX = 0.5 µg/L`,
+`ΔU = 0.05 m/s`.
 
 ---
 

@@ -115,15 +115,17 @@ where:
 P_detach(U, L) = 1 − exp(−exp((τ(U,L) − τ₀) / σ))
 ```
 
-where drag stress `τ = ½ · CD · ρ · U²` acts on the organism's projected area.
+where drag stress `τ = ½ · CD · ρ · U²` acts on the organism's projected area,
+and the adhesion threshold is size-dependent:
+`τ₀,eff(L) = τ₀,ref · (L/L_ref)^α` so larger organisms require higher stress to detach.
 
 ### Key Results
 
 | Parameter | Sensitivity (∂L/∂param at t=120d) | Relative impact |
 |-----------|-----------------------------------|-----------------|
-| Temperature T | +0.0047 cm/°C | **9.71%** per 2°C |
-| Food density X | +0.0060 cm/(µg/L) | 3.10% per 0.5 µg/L |
-| Flow velocity U | +0.0503 cm/(m/s) | 2.60% per 0.05 m/s |
+| Temperature T | model-dependent | dominant |
+| Food density X | model-dependent | secondary |
+| Flow velocity U | model-dependent | weakest direct growth effect within the tested range |
 
 **Growth curves (5 Tokyo Bay scenarios):**
 
@@ -160,11 +162,12 @@ seasonal climatology.
 
 | Metric | Value |
 |--------|-------|
-| 5-fold CV ROC-AUC | **0.927 ± 0.003** |
-| Test accuracy | 83% |
-| Test F1 (high risk) | 0.83 |
+| Held-out grouped ROC-AUC | depends on split |
+| Interpretation | recovery of known relationships from synthetic labels |
 
-Top predictors: Chlorophyll-a > Water temperature > Dissolved oxygen
+Top predictors are expected to reflect the synthetic mechanistic risk function.
+These scores should be interpreted as recovery of known relationships from
+synthetic labels, not independent field validation.
 
 **Seasonal risk maps (Summer peak vs Winter low):**
 

@@ -1,16 +1,3 @@
-"""
-run_all.py
-----------
-One-command runner for the biofouling modeling prototype.
-Executes both modules in sequence and prints a summary of outputs.
-
-Usage:
-    python run_all.py
-
-Requirements:
-    pip install -r requirements.txt
-"""
-
 import subprocess
 import sys
 import time
@@ -19,11 +6,11 @@ from pathlib import Path
 
 MODULES = [
     ("Module 1 — DEB Model + Sensitivity Analysis",
-     Path("src") / "biofouling_deb_sensitivity.py",
+     Path("biofouling_deb_sensitivity.py"),
      Path("results") / "deb"),
 
     ("Module 2 — Tokyo Bay Risk Prediction",
-     Path("src") / "tokyo_bay_biofouling_risk.py",
+     Path("tokyo_bay_biofouling_risk.py"),
      Path("results") / "tokyobay"),
 ]
 
@@ -64,7 +51,6 @@ def run_module(title, script_path, output_dir):
 def main():
     print(f"\n{SEP}")
     print("  Biofouling Dynamics — Numerical Modeling Prototype")
-    print("  github.com/[your-username]/biofouling-flexible-cage")
     print(SEP)
 
     all_ok = True

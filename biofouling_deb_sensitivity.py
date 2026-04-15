@@ -24,6 +24,10 @@ PARAMS = dict(
     rho_w   = 1025.0,
     tau_0   = 12.5,
     sigma_t = 4.0,
+    L_ref   = 1.0,    
+    alpha_L = 0.8,    
+    L_inf   = 4.0,   
+    L0_res  = 0.10,   
 )
 
 def arrhenius_correction(T_K, p):
@@ -37,31 +41,56 @@ def arrhenius_correction(T_K, p):
     return np.clip(T_corr, 0.0, 3.0)
 
 def functional_response(X, U, p):
-    U_crit = 0.25
-    flow_enhancement = 1.0 + 0.8 * np.minimum(U / U_crit, 1.0)
-    X_eff = X * flow_enhancement
+    U_crit = 0.20
+    U_pen  = 0.35
+    beta   = 0.8
+    gamma  = 0.6
+
+    enhancement = 1.0 + beta * np.minimum(U / U_crit, 1.0)
+    penalty = np.exp(-gamma * np.maximum(U - U_pen, 0.0) / U_pen)
+
+    X_eff = X * enhancement * penalty
     return X_eff / (p['K_food'] + X_eff)
 
 def deb_ode(t, y, T_K, X, U, p):
     e, L = y
     L = max(L, 1e-6)
+
     T_corr = arrhenius_correction(T_K, p)
     f      = functional_response(X, U, p)
+
     v_T   = p['v_dot'] * T_corr
     kM_T  = p['k_M']   * T_corr
     pAm_T = p['p_Am']  * T_corr
-    de_dt = (f - e) * v_T / L
-    numerator = p['kappa'] * pAm_T * e * v_T / pAm_T - kM_T * L
+
+    
+    de_dt = (f - e) * v_T / (L + p['L0_res'])
+
+    
+    assim = p['kappa'] * e * v_T
+    maint = kM_T * L
+    size_factor = max(0.0, 1.0 - L / p['L_inf'])
+
+    numerator = (assim - maint) * size_factor
     dL_dt = numerator / (3.0 * (1.0 + p['E_G'] / (pAm_T / v_T)))
+
     dL_dt = max(dL_dt, -0.05 * L)
     return [de_dt, dL_dt]
 
 def detachment_probability(U_arr, L_cm, p):
-    L_m   = L_cm * 0.01
-    A_ref = np.pi * (L_m / 2.0) ** 2
-    tau   = 0.5 * p['C_D'] * p['rho_w'] * U_arr**2 * A_ref / (L_m**2 + 1e-12)
-    z     = (tau - p['tau_0']) / p['sigma_t']
-    return 1.0 - np.exp(-np.exp(z))
+    L_m = L_cm * 0.01
+
+    A_proj = np.pi * (L_m / 2.0) ** 2
+    A_adh  = L_m**2 + 1e-12
+
+    tau = 0.5 * p['C_D'] * p['rho_w'] * U_arr**2 * A_proj / A_adh
+
+  
+    tau0_eff = p['tau_0'] * (L_cm / p['L_ref']) ** p['alpha_L']
+
+    z = (tau - tau0_eff) / p['sigma_t']
+    P = 1.0 - np.exp(-np.exp(z))
+    return np.clip(P, 0.0, 1.0)
 
 t_span = (0, 180)
 t_eval = np.linspace(0, 180, 500)

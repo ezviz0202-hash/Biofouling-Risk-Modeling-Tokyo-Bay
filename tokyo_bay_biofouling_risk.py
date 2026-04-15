@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.colors import LinearSegmentedColormap
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, roc_curve, auc
+from sklearn.model_selection import GroupShuffleSplit
+from sklearn.metrics import confusion_matrix, roc_curve, auc, f1_score, accuracy_score
 from sklearn.preprocessing import StandardScaler
 from scipy.interpolate import RBFInterpolator
 
@@ -64,13 +64,27 @@ df_all = pd.concat([generate_station_data(n, lo, la, z) for n, (lo, la, z) in ST
 df_all.to_csv("output_tokyobay/tokyo_bay_risk_data.csv", index=False)
 
 features = ["T_C", "chl_a", "salinity", "turbidity", "flow_U", "do_mgl", "doy"]
-X_train, X_test, y_train, y_test = train_test_split(df_all[features].values, df_all["risk_label"].values, 
-                                                    test_size=0.25, random_state=42)
+
+X = df_all[features].values
+y = df_all["risk_label"].values
+groups = df_all["station"].values
+
+gss = GroupShuffleSplit(n_splits=1, test_size=0.30, random_state=42)
+train_idx, test_idx = next(gss.split(X, y, groups=groups))
+
+X_train, X_test = X[train_idx], X[test_idx]
+y_train, y_test = y[train_idx], y[test_idx]
 
 scaler = StandardScaler()
 X_train_s, X_test_s = scaler.fit_transform(X_train), scaler.transform(X_test)
 
-rf = RandomForestClassifier(n_estimators=300, max_depth=10, random_state=42, n_jobs=-1)
+rf = RandomForestClassifier(
+    n_estimators=300,
+    max_depth=10,
+    class_weight="balanced",
+    random_state=42,
+    n_jobs=-1
+)
 rf.fit(X_train_s, y_train)
 
 importance = pd.Series(rf.feature_importances_, index=features).sort_values()
@@ -81,12 +95,35 @@ plt.savefig("output_tokyobay/feature_importance.png", dpi=150)
 plt.close()
 
 y_prob = rf.predict_proba(X_test_s)[:, 1]
+y_pred = (y_prob >= 0.5).astype(int)
 fpr, tpr, _ = roc_curve(y_test, y_prob)
-fig, ax = plt.subplots()
-ax.plot(fpr, tpr, label=f"AUC = {auc(fpr, tpr):.3f}")
-ax.plot([0,1], [0,1], '--', color='grey')
-ax.set_title("ROC Curve", fontweight='bold')
-ax.legend()
+roc_auc = auc(fpr, tpr)
+acc = accuracy_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+cm = confusion_matrix(y_test, y_pred)
+
+fig, axes = plt.subplots(1, 2, figsize=(11, 5))
+
+axes[0].plot(fpr, tpr, lw=2, label=f"AUC = {roc_auc:.3f}")
+axes[0].plot([0, 1], [0, 1], '--', color='grey')
+axes[0].set_title("ROC Curve", fontweight='bold')
+axes[0].set_xlabel("False Positive Rate")
+axes[0].set_ylabel("True Positive Rate")
+axes[0].legend()
+
+im = axes[1].imshow(cm, cmap='Blues')
+for i in range(cm.shape[0]):
+    for j in range(cm.shape[1]):
+        axes[1].text(j, i, f"{cm[i, j]}", ha="center", va="center",
+                     color="white" if cm[i, j] > cm.max() / 2 else "black",
+                     fontsize=14, fontweight='bold')
+axes[1].set_xticks([0, 1], labels=["Low Risk", "High Risk"])
+axes[1].set_yticks([0, 1], labels=["Low Risk", "High Risk"])
+axes[1].set_xlabel("Predicted")
+axes[1].set_ylabel("Actual")
+axes[1].set_title(f"Confusion Matrix\nAcc={acc:.3f}, F1={f1:.3f}", fontweight='bold')
+
+plt.tight_layout()
 plt.savefig("output_tokyobay/model_evaluation.png", dpi=150)
 plt.close()
 
