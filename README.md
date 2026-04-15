@@ -253,11 +253,7 @@ databases (currently replaced by physically realistic synthetic data):
    Marine Organisms: An Integrated DEB-Statistical Approach.*
 3. Kristiansen, T. & Faltinsen, O.M. (2012). Modelling of current loads on
    aquaculture net cages. *Journal of Fluids and Structures*, 34, 218–235.
-4. Zhao, Y., Lian, L. & Gui, F. (2019). Dynamic analysis of a fish cage with an
-   offshore floating collar in regular and random waves. *Ocean Engineering*, 178,
-   548–557.
-5. de Carvalho, W.F. et al. (2020). Biofouling on aquaculture equipment: community
-   composition, economic impact, and control strategies. *Reviews in Aquaculture*,
+
    12(3), 1701–1718.
 
 
